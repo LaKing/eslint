@@ -177,6 +177,46 @@ async function foo(obj) {
 
 :::
 
+The rule does not detect the same type of problematic logic when using `Object.assign()`, but the same type of subtile bugs can occour.
+
+::: incorrect, without warning
+
+```js
+let obj = { x: 0 };
+
+async function add(x) {
+    return x;
+}
+
+async function incorrectAdd(num) {
+    const x = obj.x + await add(num);
+  	Object.assign(obj, { x })
+}
+
+Promise.all([incorrectAdd(1), incorrectAdd(2)]).then(() => {
+    console.log("The incorrect value is", obj.x);
+});
+```
+::: correct
+
+```js
+let obj = { x: 0 };
+
+async function add(x) {
+    return x;
+}
+
+async function correctAdd(num) {
+  	const value = await add(num);
+    const x = obj.x + value;
+  	Object.assign(obj, { x })
+}
+
+Promise.all([correctAdd(1), correctAdd(2)]).then(() => {
+    console.log("The correct value is", obj.x);
+});
+```
+
 ## Options
 
 This rule has an object option:
